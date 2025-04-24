@@ -1,21 +1,22 @@
 import openai
 
-# Configurar tu clave de API (reemplazá esto con tu clave real)
+"""
+Script principal que permite enviar consultas a la API de ChatGPT.
+Gestiona errores, permite reusar la última consulta y entrega la respuesta en consola.
+"""
+
+import openai
+
+# Clave de API (reemplazar con tu propia key)
 openai.api_key = "TU_API_KEY_AQUI"
 
-# Guardamos la última consulta para poder reutilizarla si el usuario presiona ↑
+# Variable para recordar la última consulta ingresada
 ultima_consulta = ""
 
 def enviar_consulta(prompt):
-    """
-    Envía un prompt a la API de OpenAI ChatGPT y muestra la respuesta.
-    También gestiona errores de conexión o uso del API.
-    """
+    """Envía un prompt a ChatGPT y muestra la respuesta."""
     try:
-        # Mostrar el mensaje que se enviará
         print("You:", prompt)
-
-        # Llamar al modelo de lenguaje GPT
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -25,57 +26,40 @@ def enviar_consulta(prompt):
             temperature=1,
             max_tokens=500
         )
-
-        # Obtener y mostrar la respuesta del modelo
         mensaje = response.choices[0].message["content"]
         print("chatGPT:", mensaje)
 
+    except openai.error.OpenAIError as e:
+        print("Error con la API de OpenAI:", str(e))
     except Exception as e:
-        # Si ocurre un error con la API, se muestra el mensaje
-        print("Error al invocar la API:", str(e))
-
+        print("Error inesperado:", str(e))  # Aún usamos broad catch como respaldo
 
 def main():
-    """
-    Función principal que recibe la consulta del usuario,
-    maneja errores de entrada y llama a la función que se conecta a la API.
-    """
+    """Solicita una consulta del usuario y llama a la API."""
     global ultima_consulta
 
     try:
-        # Pedimos la consulta del usuario
-        consulta = input("Ingrese su consulta (o presione ↑ para repetir la última): ").strip()
-
-        # Validamos si está vacía
+        consulta = input("Ingrese su consulta (o ↑ para repetir la última): ").strip()
         if not consulta:
-            print("Consulta vacía. Intente nuevamente.")
+            print("Consulta vacía.")
             return
-
-        # Si el usuario ingresa ↑ y hay una consulta anterior, la usamos
         if consulta == "↑" and ultima_consulta:
             consulta = ultima_consulta
         else:
-            # Guardamos la nueva consulta como la última
             ultima_consulta = consulta
-
     except Exception as e:
-        # Si hubo error al ingresar datos
-        print("Error en la lectura de entrada:", str(e))
+        print("Error en la entrada:", str(e))
         return
 
     try:
-        # Enviamos la consulta a ChatGPT
         enviar_consulta(consulta)
     except Exception as e:
-        # Captura errores de procesamiento
         print("Error en el procesamiento:", str(e))
 
-
-# Ejecutar el programa en bucle hasta que el usuario lo corte
 if __name__ == "__main__":
     while True:
         try:
             main()
         except KeyboardInterrupt:
-            print("\nSaliendo del programa.")
+            print("\nSaliendo.")
             break
